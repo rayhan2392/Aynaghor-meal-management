@@ -6,6 +6,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Meals } from './pages/Meals';
 import { Expenses } from './pages/Expenses';
 import { Deposits } from './pages/Deposits';
+import { ClosePage } from './pages/ClosePage';
+import { SettingsPage } from './pages/SettingsPage';
 import './index.css';
 
 function App() {
@@ -18,8 +20,8 @@ function App() {
             <Route path="/meals" element={<Meals />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/deposits" element={<Deposits />} />
-            <Route path="/close" element={<div className="p-4">Close Month Page - Coming Soon</div>} />
-            <Route path="/settings" element={<div className="p-4">Settings Page - Coming Soon</div>} />
+            <Route path="/close" element={<ClosePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </Layout>
       </Router>

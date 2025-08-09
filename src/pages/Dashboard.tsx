@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store/store';
 import { formatBDT } from '../utils/currency';
+import { QuickEntryForms } from '../components/dashboard/QuickEntryForms';
 
 // Mock users data
 const users = [
@@ -131,12 +132,10 @@ export function Dashboard() {
             <div className="bg-white rounded-lg border">
                 <div className="p-6 border-b border-gray-200">
                     <h3 className="text-lg font-semibold">Today's Quick Entry</h3>
+                    <p className="text-sm text-gray-500 mt-1">Quickly add today's meals, expenses, and deposits</p>
                 </div>
                 <div className="p-6">
-                    <div className="text-center py-8 text-gray-500">
-                        <p>Quick entry forms for today's meals, expenses, and deposits will be available here.</p>
-                        <p className="text-sm mt-2">Use the navigation menu to access detailed entry forms.</p>
-                    </div>
+                    <QuickEntryForms />
                 </div>
             </div>
         </div>

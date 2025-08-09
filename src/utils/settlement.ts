@@ -16,14 +16,13 @@ export interface SettlementResult {
   totalMeals: number;
   totalDeposits: string;
   perUser: PerUserSummary[];
-  transfers: Transfer[];
+  managerTransactions: ManagerTransaction[];
 }
 
-export interface Transfer {
-  fromUserId: string;
-  fromName: string;
-  toUserId: string;
-  toName: string;
+export interface ManagerTransaction {
+  userId: string;
+  userName: string;
+  type: 'owes' | 'receives'; // owes = pays to manager, receives = gets from manager
   amount: string;
 }
 
@@ -187,8 +186,8 @@ export function computeFinalSettlement(
     largestUser.net = new Money(largestUser.deposited).subtract(adjustedShare).toString();
   }
 
-  // Generate transfer suggestions
-  const transfers = generateTransfers(perUser);
+  // Generate manager-based transactions
+  const managerTransactions = generateManagerTransactions(perUser);
 
   return {
     perMealRate,
@@ -196,60 +195,39 @@ export function computeFinalSettlement(
     totalMeals,
     totalDeposits: adjustedTotalDeposits,
     perUser,
-    transfers,
+    managerTransactions,
   };
 }
 
-// Generate minimal transfer suggestions to settle all debts
-function generateTransfers(perUser: PerUserSummary[]): Transfer[] {
-  const transfers: Transfer[] = [];
+// Generate manager-based transactions (simplified settlement)
+function generateManagerTransactions(perUser: PerUserSummary[]): ManagerTransaction[] {
+  const transactions: ManagerTransaction[] = [];
 
-  // Separate creditors (positive net) and debtors (negative net)
-  const creditors = perUser
-    .filter(user => new Money(user.net).isPositive())
-    .map(user => ({ ...user, remaining: new Money(user.net) }))
-    .sort((a, b) => b.remaining.subtract(a.remaining).toNumber());
+  perUser.forEach(user => {
+    const net = new Money(user.net);
 
-  const debtors = perUser
-    .filter(user => new Money(user.net).lessThan('0'))
-    .map(user => ({ ...user, remaining: new Money(user.net).multiply(-1) }))
-    .sort((a, b) => b.remaining.subtract(a.remaining).toNumber());
-
-  // Match largest creditor with largest debtor
-  let creditorIndex = 0;
-  let debtorIndex = 0;
-
-  while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
-    const creditor = creditors[creditorIndex];
-    const debtor = debtors[debtorIndex];
-
-    // Transfer the minimum of what creditor is owed and what debtor owes
-    const transferAmount = creditor.remaining.lessThan(debtor.remaining)
-      ? creditor.remaining
-      : debtor.remaining;
-
-    if (transferAmount.isPositive()) {
-      transfers.push({
-        fromUserId: debtor.userId,
-        fromName: debtor.name,
-        toUserId: creditor.userId,
-        toName: creditor.name,
-        amount: roundMoney(transferAmount.toString()),
+    if (net.isPositive()) {
+      // User gets money back from manager
+      transactions.push({
+        userId: user.userId,
+        userName: user.name,
+        type: 'receives',
+        amount: roundMoney(user.net),
       });
-
-      // Update remaining amounts
-      creditor.remaining = creditor.remaining.subtract(transferAmount);
-      debtor.remaining = debtor.remaining.subtract(transferAmount);
+    } else if (net.lessThan('0')) {
+      // User owes money to manager
+      transactions.push({
+        userId: user.userId,
+        userName: user.name,
+        type: 'owes',
+        amount: roundMoney(net.multiply(-1).toString()),
+      });
     }
+    // If net is zero, no transaction needed
+  });
 
-    // Move to next creditor or debtor if current one is settled
-    if (creditor.remaining.isZero()) {
-      creditorIndex++;
-    }
-    if (debtor.remaining.isZero()) {
-      debtorIndex++;
-    }
-  }
-
-  return transfers;
+  // Sort by amount (largest first) for easier processing
+  return transactions.sort((a, b) =>
+    new Money(b.amount).subtract(a.amount).toNumber()
+  );
 }
