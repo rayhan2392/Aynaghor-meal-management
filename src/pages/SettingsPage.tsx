@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState } from '../store/store';
+// import { useSelector, useDispatch } from 'react-redux';
+// import type { RootState } from '../store/store';
 
 // Mock users data (should eventually come from Redux)
 const initialUsers = [
@@ -99,8 +99,8 @@ export function SettingsPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               {tab.name}
@@ -142,8 +142,8 @@ export function SettingsPage() {
                       <button
                         onClick={() => toggleUserStatus(user.id)}
                         className={`px-3 py-1 rounded text-sm font-medium ${user.active
-                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                          ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
                           }`}
                       >
                         {user.active ? 'Deactivate' : 'Activate'}
@@ -239,8 +239,8 @@ export function SettingsPage() {
                       <button
                         onClick={() => toggleCycleStatus(cycle.id)}
                         className={`px-3 py-1 rounded text-sm font-medium ${cycle.status === 'open'
-                            ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                          ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
                           }`}
                       >
                         {cycle.status === 'open' ? 'Close' : 'Reopen'}

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'sonner';
 import type { RootState } from '../store/store';
-import { saveMealsForDate, updateMealForUser, updateGuestMeals } from '../store/mealsSlice';
+import { saveMealsForDate } from '../store/mealsSlice';
 
 // Mock users data
 const users = [
@@ -86,7 +87,7 @@ export function Meals() {
         setIsEditing(false);
         setHasDataForDate(true);
         console.log('Saving meals for date:', selectedDate, meals);
-        alert('Meals saved successfully!');
+        toast.success('🍽️ Meals saved successfully!');
     };
 
     const startAddingMeals = () => {
@@ -115,7 +116,7 @@ export function Meals() {
             });
             return updated;
         });
-        alert('Copied from yesterday (mock data)');
+        toast.info('📋 Copied from yesterday (mock data)');
     };
 
     return (

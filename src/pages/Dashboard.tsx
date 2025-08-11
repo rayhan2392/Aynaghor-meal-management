@@ -131,8 +131,8 @@ export function Dashboard() {
             {/* Today's Quick Entry */}
             <div className="bg-white rounded-lg border">
                 <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold">Today's Quick Entry</h3>
-                    <p className="text-sm text-gray-500 mt-1">Quickly add today's meals, expenses, and deposits</p>
+                    <h3 className="text-lg font-semibold">Emergency Expense Entry</h3>
+                    <p className="text-sm text-gray-500 mt-1">For additional/emergency expenses only</p>
                 </div>
                 <div className="p-6">
                     <QuickEntryForms />

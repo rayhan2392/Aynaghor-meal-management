@@ -1,0 +1,292 @@
+# Aynnaghor Meal Management System - Cursor Rules
+
+## Project Overview
+
+This is a React-based meal management application for shared living spaces (hostels, apartments, group houses). It tracks meals, expenses, deposits, and manages monthly settlements for 5 regular members + 1 manager/admin.
+
+## Key Business Rules
+
+### User Management
+
+- **5 regular members + 1 manager/admin** (total 6 users)
+- Manager is an admin role, separate from the 5 participants
+- Current users: Shawn (manager), Sadi, Masud, Arnab, Muzahid (members)
+- Users can be active/inactive, affecting settlement calculations
+- Historical data preserved when users are deactivated
+
+### Meal Rules
+
+- **One lunch + one dinner** per user per day maximum
+- **Guest meals** unlimited (for visitors, counted under user's meals)
+- Daily restrictions reset each day
+- Meal tracking via interactive forms with live editing
+
+### Financial Rules
+
+- **Shared expenses**: Split equally among active members
+- **Personal expenses**: Paid by individuals, credited to their deposits
+- **Individual deposits**: Credited to specific member
+- **Monthly settlement**: Net calculation of meals taken vs. money contributed
+- **Currency**: Bangladeshi Taka (BDT) with precise decimal calculations
+
+### Settlement System (Manager-Centric)
+
+- **ALL transactions flow through the manager/admin**
+- If member owes money → they pay the manager
+- If member receives money → they get it from the manager
+- **NO direct member-to-member transactions**
+- Settlement calculation: `Net = Deposited - (Meals × PerMealRate)`
+
+## Technical Stack
+
+### Core Technologies
+
+- **React 19** with TypeScript
+- **Vite** for build tooling and dev server
+- **Tailwind CSS** for styling
+- **Radix UI** for accessible components
+
+### State Management
+
+- **Redux Toolkit** for centralized state management
+- **React Router v7** for navigation
+- Structured slices: meals, expenses, deposits, users, cycles
+
+### Data & Persistence
+
+- **localStorage** integration for data persistence
+- **Mock Database** system for development
+- **decimal.js** for precise financial calculations
+- Seeded data for testing and development
+
+### Key Libraries
+
+- **React Hook Form** for form handling and validation
+- **Zod** for validation schemas
+- **dayjs** for date manipulation
+- **lucide-react** for icons
+- **clsx** + **tailwind-merge** for conditional styling
+
+## File Structure & Patterns
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── dashboard/      # Dashboard-specific components
+│   ├── layout/         # App layout components
+│   └── ui/             # Base UI components (Radix-based)
+├── features/           # Redux slices and state management
+│   ├── cycles/         # Monthly cycles management
+│   ├── deposits/       # Deposit tracking
+│   ├── expenses/       # Expense management
+│   ├── meals/          # Meal tracking
+│   └── users/          # User management
+├── pages/              # Page components
+├── services/           # External services
+│   ├── api/            # API-like services (mock)
+│   ├── mock/           # Mock data and database
+│   └── storage/        # localStorage utilities
+├── types/              # TypeScript type definitions
+├── utils/              # Utility functions
+│   ├── currency.ts     # Currency formatting (BDT)
+│   ├── money.ts        # Precise money calculations
+│   └── settlement.ts   # Settlement logic
+└── validation/         # Form validation schemas
+```
+
+## Code Style & Conventions
+
+### TypeScript
+
+- Use strict TypeScript with proper typing
+- Define interfaces in `src/types/models.ts` for data models
+- Use proper typing for Redux state and actions
+
+### Components
+
+- Use functional components with hooks
+- Prefer composition over inheritance
+- Use Radix UI components as base for custom components
+- Follow the existing naming conventions
+
+### State Management
+
+- Use Redux Toolkit slices for state management
+- Keep business logic in utils (especially settlement calculations)
+- Use selectors for derived state
+
+### Styling
+
+- Use Tailwind CSS utility classes
+- Follow existing color scheme and spacing
+- Responsive design with mobile-first approach
+- Use conditional styling with clsx/tailwind-merge
+
+### Money & Calculations
+
+- **ALWAYS use decimal.js for money calculations**
+- Store money as strings for precision
+- Use utility functions in `src/utils/money.ts`
+- Format currency using `src/utils/currency.ts`
+
+## Data Models (Key Interfaces)
+
+```typescript
+// Core models in src/types/models.ts
+interface User {
+  _id: string;
+  name: string;
+  role: "manager" | "member";
+  active: boolean;
+  createdAt: string;
+}
+
+interface MealEntry {
+  _id: string;
+  cycleId: string;
+  date: string;
+  userId: string;
+  lunch: number; // 0 | 1
+  dinner: number; // 0 | 1
+  guestMeals: number; // integer >= 0
+  note?: string;
+  createdAt: string;
+}
+
+interface Expense {
+  _id: string;
+  cycleId: string;
+  date: string;
+  amount: string; // money as string for precision
+  paidFrom: "pool" | "personal";
+  payerUserId?: string; // required if paidFrom='personal'
+  note?: string;
+  createdAt: string;
+}
+
+interface Deposit {
+  _id: string;
+  cycleId: string;
+  userId: string;
+  date: string;
+  amount: string; // money as string for precision
+  note?: string;
+  createdAt: string;
+}
+```
+
+## Development Guidelines
+
+### Adding New Features
+
+1. Create Redux slice in `src/features/`
+2. Add API service in `src/services/api/`
+3. Create page component in `src/pages/`
+4. Add route in `src/App.tsx`
+5. Update types in `src/types/`
+
+### Form Handling
+
+- Use React Hook Form with Zod validation
+- Create schemas in `src/validation/`
+- Follow existing form patterns
+
+### API Services
+
+- Use mock services that simulate async operations
+- Follow existing patterns in `src/services/api/`
+- Data persists via localStorage
+
+### Testing Approach
+
+- The app uses seeded mock data for development
+- Reset database function available for testing
+- All calculations should be testable with known inputs
+
+## Common Patterns
+
+### Money Calculations
+
+```typescript
+import { Money, addMoney, multiplyMoney } from "@/utils/money";
+
+// Calculate total
+const total = addMoney(amounts); // amounts: string[]
+
+// Calculate meal cost
+const cost = multiplyMoney(perMealRate, mealCount);
+
+// Use Money class for complex operations
+const net = new Money(deposited).subtract(share).toString();
+```
+
+### Settlement Logic
+
+- Use `computeInterimTotals()` for month-to-date calculations
+- Use `computeFinalSettlement()` for month-end settlement
+- All settlement logic is in `src/utils/settlement.ts`
+
+### Redux Usage
+
+```typescript
+// In components
+const expenses = useSelector((state: RootState) => state.expenses.expenses);
+const dispatch = useDispatch();
+
+// Actions
+dispatch(expensesSlice.actions.addExpense(expenseData));
+```
+
+## Important Notes
+
+### Data Persistence
+
+- All data is stored in localStorage
+- Mock database provides CRUD operations
+- Seeding creates initial users and current month cycle
+
+### Currency & Formatting
+
+- Always format currency as BDT using `formatBDT()`
+- Round final settlement amounts to whole BDT
+- Precise calculations until final display
+
+### Settlement Flow
+
+1. Track meals, expenses, and deposits during month
+2. Calculate interim totals on dashboard
+3. Generate final settlement at month end
+4. Manager handles all payments/receipts
+5. Close month and start new cycle
+
+### Error Handling
+
+- Validate inputs using Zod schemas
+- Handle localStorage errors gracefully
+- Provide user feedback for operations
+
+## Dependencies to Remember
+
+- `decimal.js` for money calculations
+- `dayjs` for date operations
+- `@reduxjs/toolkit` for state management
+- `react-hook-form` + `@hookform/resolvers` for forms
+- `zod` for validation
+- `tailwindcss` + component utilities for styling
+
+## Future Considerations
+
+- The data models are designed to be MongoDB/Mongoose compatible
+- API services can be replaced with real backend calls
+- localStorage can be replaced with server persistence
+- Component architecture supports easy theming and customization
+
+
+# .cursorrules (starter)
+- STYLE: TypeScript (strict) preferred, Prettier + ESLint.
+- TESTS: New features require at least 1 unit test. Integration tests required for endpoints.
+- SECURITY: Never print or commit secrets. Stop and ask if secrets are found.
+- DB: Schema changes require migration file + tests.
+- COMMITS: Keep each commit single-purpose and add a short message.
+- APPLY CHANGES: Cursor agents must show diffs and open PRs; do not auto-commit to main.
+
